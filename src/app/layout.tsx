@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Archivo_Black, Montserrat, Unbounded } from "next/font/google";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 import { Header } from "@/components/layout/Header";
+import { MainLayoutWrapper } from "@/components/layout/MainLayoutWrapper";
 import "./globals.css";
 
 const archivoBlack = Archivo_Black({
@@ -47,7 +48,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${archivoBlack.variable} ${montserrat.variable} ${unbounded.variable} scroll-smooth`}>
       <body className="bg-truf-dark font-sans text-white antialiased">
         <SmoothScrollProvider>
-          <Header />
+          <MainLayoutWrapper>
+            <Header />
+          </MainLayoutWrapper>
           {children}
         </SmoothScrollProvider>
       </body>
