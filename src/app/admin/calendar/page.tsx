@@ -58,20 +58,20 @@ export default async function AdminCalendarPage(props: {
   return (
     <>
       <AdminHeader title="Live Calendar" />
-      <div className="p-8">
-        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h1 className="text-2xl font-black uppercase tracking-widest text-white">
+      <div className="p-4 md:p-8 overflow-x-hidden w-full">
+        <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <h1 className="text-xl md:text-2xl font-black uppercase tracking-widest text-white">
             Live Calendar
           </h1>
 
-          <div className="flex items-center gap-4">
-            <div className="flex bg-white/5 rounded-lg p-1 border border-white/10">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 w-full md:w-auto">
+            <div className="flex justify-center bg-white/5 rounded-lg p-1 border border-white/10">
               {["day", "week", "month"].map((v) => (
                 <Link
                   key={v}
                   href={`/admin/calendar?date=${dateParam}&view=${v}`}
                   className={cn(
-                    "px-4 py-1.5 text-xs font-bold capitalize rounded-md transition-colors",
+                    "flex-1 text-center px-2 md:px-4 py-1.5 text-xs font-bold capitalize rounded-md transition-colors",
                     view === v ? "bg-truf-lime text-truf-dark" : "text-white/50 hover:text-white"
                   )}
                 >
@@ -80,19 +80,19 @@ export default async function AdminCalendarPage(props: {
               ))}
             </div>
 
-            <div className="flex items-center gap-4 bg-truf-card rounded-lg p-1 border border-white/5">
+            <div className="flex items-center justify-between gap-2 md:gap-4 bg-truf-card rounded-lg p-1 border border-white/5 w-full sm:w-auto">
               <Link
                 href={`/admin/calendar?date=${prevDateStr}&view=${view}`}
-                className="rounded px-3 py-1 text-sm text-white/50 hover:bg-white/10 hover:text-white"
+                className="flex-shrink-0 rounded px-3 py-2 md:py-1 text-sm text-white/50 hover:bg-white/10 hover:text-white"
               >
                 &larr;
               </Link>
-              <span className="text-sm font-bold text-white px-2 whitespace-nowrap min-w-[140px] text-center">
+              <span className="text-xs md:text-sm font-bold text-white px-1 md:px-2 whitespace-nowrap text-center flex-1">
                 {formattedDate}
               </span>
               <Link
                 href={`/admin/calendar?date=${nextDateStr}&view=${view}`}
-                className="rounded px-3 py-1 text-sm text-white/50 hover:bg-white/10 hover:text-white"
+                className="flex-shrink-0 rounded px-3 py-2 md:py-1 text-sm text-white/50 hover:bg-white/10 hover:text-white"
               >
                 &rarr;
               </Link>

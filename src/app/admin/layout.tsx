@@ -28,7 +28,7 @@ export default async function AdminLayout({
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0">
+      <main className="flex-1 flex flex-col min-w-0 w-full max-w-[100vw] overflow-x-hidden">
         <NotificationProvider>
           {children}
         </NotificationProvider>
