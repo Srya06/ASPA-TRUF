@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { adminLogoutAction } from "@/lib/actions/admin";
 
-const links = [
+export const links = [
   {
     href: "/admin",
     label: "Dashboard",
