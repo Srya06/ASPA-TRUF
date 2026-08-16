@@ -139,8 +139,8 @@ export async function getAdminsAction() {
   const admins = await adminsCol.find({}).toArray();
   return admins.map(a => ({
     id: a._id.toString(),
-    email: a.email,
-    createdAt: a.createdAt
+    email: a.email as string,
+    createdAt: (a.createdAt instanceof Date ? a.createdAt.toISOString() : String(a.createdAt))
   }));
 }
 

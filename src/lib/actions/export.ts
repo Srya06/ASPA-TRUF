@@ -61,7 +61,7 @@ export async function exportBookingsAction() {
 
     await transporter.sendMail({
       from: `"APSA Admin Portal" <${process.env.SMTP_USER}>`,
-      to: adminEmail,
+      to: adminEmail as string,
       subject: "Your Booking Export from APSA",
       text: "Hello Admin,\n\nPlease find attached the complete list of bookings as requested from the APSA admin portal.\n\nBest,\nAPSA System",
       attachments: [
