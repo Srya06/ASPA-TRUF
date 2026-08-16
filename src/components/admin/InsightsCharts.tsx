@@ -131,20 +131,20 @@ export function InsightsCharts({
                 key={metric.key}
                 onClick={() => setSelectedMetric(metric.key)}
                 className={cn(
-                  'cursor-pointer text-start p-4 border-r border-white/10 last:border-r-0 transition-all hover:bg-white/5',
+                  'cursor-pointer text-start p-2 md:p-4 border-r border-white/10 last:border-r-0 transition-all hover:bg-white/5 overflow-hidden',
                   selectedMetric === metric.key && 'bg-white/10 shadow-inner'
                 )}
               >
-                <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-2 gap-2">
-                  <span className="text-sm text-white/50">{metric.label}</span>
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-2 gap-1 md:gap-2">
+                  <span className="text-xs md:text-sm text-white/50">{metric.label}</span>
                   {revenueData.length > 2 && (
-                    <Badge variant={isPositive ? 'success' : 'destructive'} appearance="outline" className="w-fit">
-                      {isPositive ? <ArrowUp className="size-3 mr-1" /> : <ArrowDown className="size-3 mr-1" />}
+                    <Badge variant={isPositive ? 'success' : 'destructive'} appearance="outline" className="w-fit text-[10px] md:text-xs px-1 md:px-2 py-0">
+                      {isPositive ? <ArrowUp className="size-2 md:size-3 mr-0.5 md:mr-1" /> : <ArrowDown className="size-2 md:size-3 mr-0.5 md:mr-1" />}
                       {Math.abs(change).toFixed(1)}%
                     </Badge>
                   )}
                 </div>
-                <div className="text-2xl font-bold text-white">{metric.format(metric.value)}</div>
+                <div className="text-lg md:text-xl lg:text-2xl font-bold text-white truncate" title={metric.format(metric.value)}>{metric.format(metric.value)}</div>
               </button>
             );
           })}
