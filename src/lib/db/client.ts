@@ -15,14 +15,22 @@ if (process.env.NODE_ENV === "development") {
   };
 
   if (!globalWithMongo._mongoClientPromise) {
-    const client = new MongoClient(process.env.MONGODB_URI || "");
-    globalWithMongo._mongoClientPromise = client.connect();
+    const uri = process.env.MONGODB_URI || "mongodb://dummy-for-build";
+    const client = new MongoClient(uri);
+    globalWithMongo._mongoClientPromise = client.connect().catch(err => {
+      console.error("MongoDB connection error:", err);
+      return client;
+    });
   }
   clientPromise = globalWithMongo._mongoClientPromise;
 } else {
   // In production mode, it's best to not use a global variable.
-  const client = new MongoClient(process.env.MONGODB_URI || "");
-  clientPromise = client.connect();
+  const uri = process.env.MONGODB_URI || "mongodb://dummy-for-build";
+  const client = new MongoClient(uri);
+  clientPromise = client.connect().catch(err => {
+    console.error("MongoDB connection error:", err);
+    return client;
+  });
 }
 
 export function isDatabaseConfigured(): boolean {
