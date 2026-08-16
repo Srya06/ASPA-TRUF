@@ -78,7 +78,7 @@ export function Hero({ venue, availableCount }: HeroProps) {
         </motion.div>
 
         <motion.h1
-          className="max-w-4xl text-5xl font-unbounded font-black leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl uppercase"
+          className="max-w-4xl text-4xl font-unbounded font-black leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-7xl uppercase"
           initial={reduced ? { opacity: 0 } : { opacity: 0, y: 32 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{

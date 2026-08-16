@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { auth } from "@/auth";
 import { LogoutButton } from "@/components/auth/LogoutButton";
+import { MobileNav } from "@/components/layout/MobileNav";
 
 export async function Header() {
   const session = await auth();
@@ -64,10 +65,11 @@ export async function Header() {
           )}
           <Link
             href="#availability"
-            className="rounded-full bg-truf-lime px-4 py-2 text-sm font-semibold text-truf-dark transition-all hover:bg-truf-lime/90 hover:shadow-lg hover:shadow-truf-lime/20"
+            className="hidden md:inline-flex rounded-full bg-truf-lime px-4 py-2 text-sm font-semibold text-truf-dark transition-all hover:bg-truf-lime/90 hover:shadow-lg hover:shadow-truf-lime/20"
           >
             Book Now
           </Link>
+          <MobileNav />
         </div>
       </div>
     </header>
