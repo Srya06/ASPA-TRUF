@@ -101,7 +101,7 @@ export default async function AdminDashboardPage() {
   return (
     <>
       <AdminHeader title="Dashboard" />
-      <div className="p-8 space-y-8">
+      <div className="p-4 md:p-8 overflow-x-hidden w-full space-y-8">
         <h1 className="text-2xl font-black uppercase tracking-widest text-white">
           Today&apos;s Overview
         </h1>

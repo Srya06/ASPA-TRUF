@@ -22,7 +22,7 @@ export default async function AdminSportsPage() {
   return (
     <>
       <AdminHeader title="Sports Management" />
-      <div className="p-8">
+      <div className="p-4 md:p-8 overflow-x-hidden w-full">
         <SportsList sports={sports} venueId={venueId || ""} />
       </div>
     </>

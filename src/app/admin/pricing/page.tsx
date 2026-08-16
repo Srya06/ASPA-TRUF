@@ -43,7 +43,7 @@ export default async function AdminPricingPage() {
   return (
     <>
       <AdminHeader title="Pricing Rules" />
-      <div className="p-8">
+      <div className="p-4 md:p-8 overflow-x-hidden w-full">
         <PricingList pricing={pricing} />
       </div>
     </>

@@ -41,7 +41,7 @@ export default async function AdminCourtsPage() {
   return (
     <>
       <AdminHeader title="Courts Management" />
-      <div className="p-8">
+      <div className="p-4 md:p-8 overflow-x-hidden w-full">
         <CourtsList courts={courts} sports={sports} venueId={venueId || ""} />
       </div>
     </>

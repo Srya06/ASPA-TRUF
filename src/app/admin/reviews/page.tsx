@@ -55,7 +55,7 @@ export default async function AdminReviewsPage() {
   return (
     <>
       <AdminHeader title="Reviews Moderation" />
-      <div className="p-8">
+      <div className="p-4 md:p-8 overflow-x-hidden w-full">
         <ReviewsList reviews={reviews} />
       </div>
     </>

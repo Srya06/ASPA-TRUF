@@ -12,7 +12,7 @@ export default async function InsightsPage() {
   return (
     <>
       <AdminHeader title="Insights & Strategy" />
-      <div className="p-8">
+      <div className="p-4 md:p-8 overflow-x-hidden w-full">
         
         <div className="mb-8">
           <h1 className="text-2xl font-black uppercase tracking-widest text-white">

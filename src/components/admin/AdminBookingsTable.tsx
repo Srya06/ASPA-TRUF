@@ -32,7 +32,93 @@ export function AdminBookingsTable({ bookings }: { bookings: AdminBooking[] }) {
 
   return (
     <>
-      <div className="overflow-x-auto rounded-xl border border-white/5 bg-truf-card">
+      {/* Mobile View: Stacked Cards */}
+      <div className="md:hidden space-y-4">
+        {bookings.length === 0 ? (
+          <div className="rounded-xl border border-white/5 bg-truf-card p-8 text-center text-white/50">
+            No bookings yet.
+          </div>
+        ) : (
+          bookings.map((b) => (
+            <div key={b.id} className="rounded-xl border border-white/5 bg-truf-card p-4 space-y-4">
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="font-mono text-xs text-truf-lime mb-1">{b.booking_ref}</div>
+                  <div className="font-bold text-white text-sm">{b.customer_name}</div>
+                  <div className="text-xs text-white/50">{b.customer_phone || "N/A"}</div>
+                </div>
+                <span className={cn(
+                  "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                  statusStyles[b.status] || "bg-white/10 text-white/50"
+                )}>
+                  {b.status.replace("_", " ")}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div>
+                  <div className="text-white/50 mb-0.5">Sport / Court</div>
+                  <div className="text-white font-medium capitalize">{b.sport_name}</div>
+                  <div className="text-white/70">{b.court_name}</div>
+                </div>
+                <div>
+                  <div className="text-white/50 mb-0.5">Date & Time</div>
+                  <div className="text-white font-medium">
+                    {new Date(b.slot_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                  </div>
+                  <div className="text-white/70">
+                    {formatTime12h(b.start_time)} - {formatTime12h(b.end_time)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center border-t border-white/5 pt-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-white/50">Proof:</span>
+                  {b.screenshot_base64 ? (
+                    <button 
+                      onClick={() => setModalImage(b.screenshot_base64 as string)}
+                      className="text-xs font-bold text-blue-400 hover:text-blue-300 underline underline-offset-2"
+                    >
+                      View
+                    </button>
+                  ) : (
+                    <span className="text-xs text-white/20">None</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-white/50">Total:</span>
+                  <span className="font-bold text-truf-lime text-sm">
+                    {formatPrice(b.final_amount_paise)}
+                  </span>
+                </div>
+              </div>
+
+              {b.status === "pending_verification" && (
+                <div className="flex gap-2 pt-1 border-t border-white/5">
+                  <button
+                    disabled={loadingId === b.id}
+                    onClick={() => handleReject(b.id)}
+                    className="flex-1 rounded-lg bg-red-500/10 py-2.5 text-xs font-bold text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-50 mt-2"
+                  >
+                    {loadingId === b.id ? "..." : "Reject"}
+                  </button>
+                  <button
+                    disabled={loadingId === b.id}
+                    onClick={() => handleApprove(b.id)}
+                    className="flex-1 rounded-lg bg-truf-lime/10 py-2.5 text-xs font-bold text-truf-lime hover:bg-truf-lime/20 transition-colors disabled:opacity-50 mt-2"
+                  >
+                    {loadingId === b.id ? "..." : "Approve"}
+                  </button>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop View: Table */}
+      <div className="hidden md:block overflow-x-auto rounded-xl border border-white/5 bg-truf-card">
         <table className="w-full text-left text-sm text-white/70">
           <thead className="border-b border-white/5 text-xs uppercase tracking-wider text-white/40">
             <tr>

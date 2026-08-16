@@ -12,7 +12,7 @@ export default async function AdminBookingsPage() {
   return (
     <>
       <AdminHeader title="Bookings" />
-      <div className="p-8">
+      <div className="p-4 md:p-8 overflow-x-hidden w-full">
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-black uppercase tracking-widest text-white">
