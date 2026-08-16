@@ -43,18 +43,32 @@ export function AdminCalendar({ slots, view = "day" }: AdminCalendarProps) {
   return (
     <>
       {/* Mobile View: Stacked Cards */}
-      <div className="md:hidden space-y-4">
+      <div className="md:hidden grid grid-cols-2 gap-3">
         {slots.length === 0 ? (
-          <div className="rounded-xl border border-white/5 bg-truf-card p-8 text-center text-white/50">
+          <div className="col-span-2 rounded-xl border border-white/5 bg-truf-card p-8 text-center text-white/50">
             No slots found for this period.
           </div>
         ) : (
           slots.map((slot) => (
-            <div key={slot.id} className="rounded-xl border border-white/5 bg-truf-card p-4 space-y-3">
-              <div className="flex justify-between items-start">
+            <div key={slot.id} className="flex flex-col justify-between rounded-xl border border-white/5 bg-truf-card p-3 space-y-3">
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-between items-start">
+                  <div className="font-bold text-white text-sm">
+                    {formatTime12h(slot.start_time)} - {formatTime12h(slot.end_time)}
+                  </div>
+                  <span className={cn(
+                    "inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                    slot.status === "available" && "bg-truf-lime/10 text-truf-lime",
+                    slot.status === "booked" && "bg-blue-500/10 text-blue-400",
+                    slot.status === "locked" && "bg-amber-500/10 text-amber-400",
+                    slot.status === "blocked" && "bg-red-500/10 text-red-400"
+                  )}>
+                    {slot.status}
+                  </span>
+                </div>
                 <div>
                   {isMultiDay && (
-                    <div className="text-xs text-white/50 mb-1">
+                    <div className="text-[10px] text-white/50 mb-0.5">
                       {new Date(slot.slot_date).toLocaleDateString("en-IN", {
                         weekday: "short",
                         month: "short",
@@ -62,57 +76,45 @@ export function AdminCalendar({ slots, view = "day" }: AdminCalendarProps) {
                       })}
                     </div>
                   )}
-                  <div className="font-bold text-white">
-                    {formatTime12h(slot.start_time)} - {formatTime12h(slot.end_time)}
-                  </div>
-                  <div className="text-sm text-white/70 capitalize mt-0.5">
+                  <div className="text-xs text-white/70 capitalize leading-tight">
                     {slot.sport_slug} &middot; {slot.court_name}
                   </div>
                 </div>
-                <span className={cn(
-                  "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-                  slot.status === "available" && "bg-truf-lime/10 text-truf-lime",
-                  slot.status === "booked" && "bg-blue-500/10 text-blue-400",
-                  slot.status === "locked" && "bg-amber-500/10 text-amber-400",
-                  slot.status === "blocked" && "bg-red-500/10 text-red-400"
-                )}>
-                  {slot.status}
-                </span>
               </div>
 
-              <div className="flex justify-between items-center text-sm border-t border-white/5 pt-3">
-                <div className="flex flex-col">
-                  <span className="text-xs text-white/50">Customer</span>
-                  <span className="text-white">
+              <div className="flex flex-col gap-2 border-t border-white/5 pt-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-white/50">Cust:</span>
+                  <span className="text-white font-medium truncate max-w-[80px]">
                     {slot.customer_name || "-"}
                   </span>
                 </div>
-                <div className="flex flex-col text-right">
-                  <span className="text-xs text-white/50">Price</span>
-                  <span className="font-medium text-truf-lime">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-white/50">Price:</span>
+                  <span className="font-bold text-truf-lime">
                     {formatPrice(slot.price_paise)}
                   </span>
                 </div>
-              </div>
 
-              <div className="flex gap-2 pt-2">
-                <button
-                  onClick={() => handleEditPrice(slot.id, slot.price_paise)}
-                  disabled={loadingId === slot.id || slot.status === 'booked'}
-                  className="flex-1 rounded bg-white/5 py-2 text-xs font-medium text-white hover:bg-white/10 disabled:opacity-50 transition-colors"
-                >
-                  Edit Price
-                </button>
-                <button
-                  onClick={() => handleBlock(slot.id, slot.status)}
-                  disabled={loadingId === slot.id}
-                  className={cn(
-                    "flex-1 rounded py-2 text-xs font-medium disabled:opacity-50 transition-colors",
-                    slot.status !== "available" ? "bg-truf-lime/10 text-truf-lime hover:bg-truf-lime/20" : "bg-red-500/10 text-red-400 hover:bg-red-500/20"
-                  )}
-                >
-                  {slot.status !== "available" ? "Unblock" : "Block"}
-                </button>
+                <div className="flex gap-2 pt-1 mt-auto">
+                  <button
+                    onClick={() => handleEditPrice(slot.id, slot.price_paise)}
+                    disabled={loadingId === slot.id || slot.status === 'booked'}
+                    className="flex-1 rounded bg-white/5 py-1.5 text-[10px] font-medium text-white hover:bg-white/10 disabled:opacity-50 transition-colors"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleBlock(slot.id, slot.status)}
+                    disabled={loadingId === slot.id}
+                    className={cn(
+                      "flex-1 rounded py-1.5 text-[10px] font-bold disabled:opacity-50 transition-colors",
+                      slot.status !== "available" ? "bg-truf-lime/10 text-truf-lime hover:bg-truf-lime/20" : "bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                    )}
+                  >
+                    {slot.status !== "available" ? "Unblock" : "Block"}
+                  </button>
+                </div>
               </div>
             </div>
           ))
