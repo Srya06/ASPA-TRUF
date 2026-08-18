@@ -113,10 +113,10 @@ export function SportCard({ sport, index }: SportCardProps) {
         >
           <div className="translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
             <a
-              href={`#availability?sport=${sport.slug}`}
+              href="#availability"
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-truf-lime py-3 text-sm font-bold text-truf-dark transition-colors hover:bg-truf-lime/90"
             >
-              View Slots
+              Book Now
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>

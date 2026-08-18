@@ -53,20 +53,21 @@ export async function getAvailability(
     const court = courtMap.get(slotDoc.courtId as string);
     if (!court) continue; // Skip if court is inactive or missing
     
-    const sport = sportMap.get(court.sportId as string);
-    if (!sport) continue; // Skip if sport is inactive or missing
-
-    slots.push({
-      id: slotDoc._id.toString(),
-      sportSlug: sport.slug as SportSlug,
-      courtName: court.name as string,
-      slotDate: formatDate(slotDoc.slotDate as string),
-      startTime: formatTime(slotDoc.startTime as string),
-      endTime: formatTime(slotDoc.endTime as string),
-      status: slotDoc.status as AvailabilitySlot["status"],
-      pricePaise: slotDoc.pricePaise as number,
-      isSeed: slotDoc.isSeed as boolean,
-    });
+    // Duplicate this slot for every active sport since courts are shared
+    for (const sport of sportMap.values()) {
+      slots.push({
+        id: slotDoc._id.toString() + "_" + sport.slug, // unique key for React
+        realSlotId: slotDoc._id.toString(), // actual DB ID
+        sportSlug: sport.slug as SportSlug,
+        courtName: court.name as string,
+        slotDate: formatDate(slotDoc.slotDate as string),
+        startTime: formatTime(slotDoc.startTime as string),
+        endTime: formatTime(slotDoc.endTime as string),
+        status: slotDoc.status as AvailabilitySlot["status"],
+        pricePaise: (sport.startingPricePaise as number) || 69900,
+        isSeed: slotDoc.isSeed as boolean,
+      });
+    }
   }
   
   // Sort by sport display order, then court name, then start time

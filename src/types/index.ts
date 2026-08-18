@@ -17,6 +17,7 @@ export interface Sport {
 
 export interface AvailabilitySlot {
   id: string;
+  realSlotId?: string;
   sportSlug: SportSlug;
   courtName: string;
   slotDate: string;
