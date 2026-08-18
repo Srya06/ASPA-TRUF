@@ -45,6 +45,7 @@ export function AdminMobileNav({ email, role }: AdminMobileNavProps) {
                 <Link
                   key={link.href}
                   href={link.href}
+                  prefetch={false}
                   onClick={handleLinkClick}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors",
