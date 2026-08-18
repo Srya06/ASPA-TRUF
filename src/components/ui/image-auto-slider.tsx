@@ -4,16 +4,13 @@ import React from 'react';
 import { SectionReveal } from "@/components/motion/SectionReveal";
 
 export const ImageAutoSlider = () => {
-  // Images for the infinite scroll - using sports/turf related Unsplash URLs
+  // Images for the infinite scroll - using the newly uploaded venue photos
   const images = [
-    "https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=1974&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1524799526615-766a9833dec0?q=80&w=1935&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1505142468610-359e7d316be0?q=80&w=2126&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1482881497185-d4a9ddbe4151?q=80&w=1965&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=1200&q=80",
-    "https://images.unsplash.com/photo-1574629810360-7abbc94d50a5?w=800&q=80",
-    "https://images.unsplash.com/photo-1626224583764-f87db7ac2ed9?w=800&q=80",
-    "https://images.unsplash.com/photo-1592656094267-764a45160876?w=1200&q=80"
+    "/images/showcase/showcase-1.jpg",
+    "/images/showcase/showcase-2.jpg",
+    "/images/showcase/showcase-3.jpg",
+    "/images/showcase/showcase-4.jpg",
+    "/images/showcase/showcase-5.jpg"
   ];
 
   // Duplicate images for seamless loop
