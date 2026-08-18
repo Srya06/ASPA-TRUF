@@ -6,6 +6,7 @@ import {
   warnFallbackUsage,
 } from "@/lib/db/fallback-seed";
 import type { Sport, SportSlug, SportsResponse, VenueInfo } from "@/types";
+import { getTurfPricing } from "@/lib/pricing";
 
 export async function getSports(): Promise<SportsResponse> {
   if (!isDatabaseConfigured()) {
@@ -48,18 +49,11 @@ export async function getSports(): Promise<SportsResponse> {
 
   const sports: Sport[] = [];
   for (const sportDoc of activeSports) {
-    // Get courts for this sport
-    const courts = await courtsCol.find({ sportId: sportDoc._id, isActive: true }).toArray();
-    const courtIds = courts.map(c => c._id);
     
-    // Get minimum base price for these courts
-    let minBasePrice = 0;
-    if (courtIds.length > 0) {
-        const pricingRules = await pricingCol.find({ courtId: { $in: courtIds }, isActive: true }).toArray();
-        if (pricingRules.length > 0) {
-            minBasePrice = Math.min(...pricingRules.map(p => p.basePricePaise as number));
-        }
-    }
+    // Football and Cricket allow half-court bookings, Volleyball is full-court only
+    const courtType = sportDoc.slug === "volleyball" ? "full" : "half";
+    // Get the non-peak price (e.g. 10 AM) as the "starting from" price
+    const minBasePrice = getTurfPricing(10, courtType).finalPricePaise;
 
     sports.push({
       id: sportDoc._id.toString(),
@@ -70,7 +64,7 @@ export async function getSports(): Promise<SportsResponse> {
       imageUrl: sportDoc.imageUrl as string ?? "",
       displayOrder: sportDoc.displayOrder as number,
       basePricePaise: minBasePrice,
-      courtCount: courts.length,
+      courtCount: 1, // Single physical turf
       isSeed: sportDoc.isSeed as boolean,
     });
   }
