@@ -113,7 +113,7 @@ export function SportCard({ sport, index }: SportCardProps) {
         >
           <div className="translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
             <a
-              href="#availability"
+              href={`/sports/${sport.slug}`}
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-truf-lime py-3 text-sm font-bold text-truf-dark transition-colors hover:bg-truf-lime/90"
             >
               Book Now

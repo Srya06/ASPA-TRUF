@@ -31,8 +31,9 @@ export async function getAdminBookings(limit = 50): Promise<AdminBooking[]> {
 
   for (const bookingDoc of bookingDocs) {
     let slotDoc = null;
-    if (bookingDoc.slotId) {
-        let queryId: any = bookingDoc.slotId;
+    const firstSlotId = bookingDoc.slotIds?.[0] || bookingDoc.slotId;
+    if (firstSlotId) {
+        let queryId: any = firstSlotId;
         if (ObjectId.isValid(queryId) && (typeof queryId === 'string' && queryId.length === 24)) {
             queryId = new ObjectId(queryId);
         }
@@ -43,7 +44,17 @@ export async function getAdminBookings(limit = 50): Promise<AdminBooking[]> {
     const courtDoc = await courtsCol.findOne({ _id: slotDoc.courtId as any });
     if (!courtDoc) continue;
 
-    const sportDoc = await sportsCol.findOne({ _id: courtDoc.sportId as any });
+    // Handle generic courts by using the sportSlug saved in the booking
+    let sportDoc = null;
+    if (bookingDoc.sportSlug) {
+        sportDoc = await sportsCol.findOne({ slug: bookingDoc.sportSlug as string });
+    } else if (courtDoc.sportId) {
+        sportDoc = await sportsCol.findOne({ _id: courtDoc.sportId as any });
+    }
+    
+    if (!sportDoc) {
+        sportDoc = await sportsCol.findOne({ isActive: true }); // Legacy fallback
+    }
     if (!sportDoc) continue;
 
     adminBookings.push({

@@ -35,13 +35,31 @@ export async function getMyBookings(userId: string): Promise<MyBooking[]> {
   const myBookings: MyBooking[] = [];
 
   for (const bookingDoc of bookingDocs) {
-    const slotDoc = await slotsCol.findOne({ _id: new ObjectId(bookingDoc.slotId as string) });
+    const firstSlotId = bookingDoc.slotIds?.[0] || bookingDoc.slotId;
+    if (!firstSlotId) continue;
+    
+    let querySlotId: any = firstSlotId;
+    if (ObjectId.isValid(querySlotId) && typeof querySlotId === 'string' && querySlotId.length === 24) {
+        querySlotId = new ObjectId(querySlotId);
+    }
+
+    const slotDoc = await slotsCol.findOne({ _id: querySlotId });
     if (!slotDoc) continue;
 
     const courtDoc = await courtsCol.findOne({ _id: slotDoc.courtId as any });
     if (!courtDoc) continue;
 
-    const sportDoc = await sportsCol.findOne({ _id: courtDoc.sportId as any });
+    // Handle generic courts by using the sportSlug saved in the booking
+    let sportDoc = null;
+    if (bookingDoc.sportSlug) {
+        sportDoc = await sportsCol.findOne({ slug: bookingDoc.sportSlug as string });
+    } else if (courtDoc.sportId) {
+        sportDoc = await sportsCol.findOne({ _id: courtDoc.sportId as any });
+    }
+    
+    if (!sportDoc) {
+        sportDoc = await sportsCol.findOne({ isActive: true }); // Legacy fallback
+    }
     if (!sportDoc) continue;
 
     const venueDoc = await venuesCol.findOne({ _id: courtDoc.venueId as any });

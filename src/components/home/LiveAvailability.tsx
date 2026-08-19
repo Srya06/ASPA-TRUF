@@ -12,6 +12,7 @@ interface LiveAvailabilityProps {
   slots: AvailabilitySlot[];
   date: string;
   source: "database" | "fallback";
+  filterSportSlug?: string;
 }
 
 // Ensure Razorpay script is loaded
@@ -35,11 +36,16 @@ declare global {
   }
 }
 
-export function LiveAvailabilityContent({ slots, date, source }: LiveAvailabilityProps) {
+export function LiveAvailabilityContent({ slots, date, source, filterSportSlug }: LiveAvailabilityProps) {
   const { data: session } = useSession();
   
+  // Filter slots if a specific sport is requested
+  const filteredSlots = filterSportSlug 
+    ? slots.filter(s => s.sportSlug === filterSportSlug) 
+    : slots;
+
   // Group slots by Sport -> StartTime
-  const groupedBySportAndTime = slots.reduce<
+  const groupedBySportAndTime = filteredSlots.reduce<
     Record<SportSlug, Record<string, AvailabilitySlot[]>>
   >((acc, slot) => {
     if (!acc[slot.sportSlug]) acc[slot.sportSlug] = {};
@@ -63,80 +69,18 @@ export function LiveAvailabilityContent({ slots, date, source }: LiveAvailabilit
     }
   };
 
-  const handleCheckout = async (selectedSlotIds: string[], pricePaise: number) => {
+  const handleCheckout = (selectedSlotIds: string[], sportSlug: string, pricePaise: number) => {
     if (!session?.user?.id) {
       window.location.href = "/login?callbackUrl=/";
       return;
     }
     
-    setIsProcessing(true);
-    try {
-      const resLoaded = await loadRazorpay();
-      if (!resLoaded) {
-        alert("Failed to load Razorpay SDK. Check your connection.");
-        setIsProcessing(false);
-        return;
-      }
-
-      const userId = session.user.id;
-
-      // 1. Lock and create order
-      const orderRes = (await lockAndCreateRazorpayOrder(selectedSlotIds, userId, pricePaise)) as any;
-      
-      if (!orderRes.success) {
-        alert(orderRes.error || "Failed to create order");
-        setIsProcessing(false);
-        return;
-      }
-
-      // 2. Open Razorpay
-      const options = {
-        key: orderRes.key,
-        amount: orderRes.amount,
-        currency: "INR",
-        name: "APSA Sports Arena",
-        description: "Turf Booking",
-        order_id: orderRes.orderId,
-        handler: async function (response: any) {
-          try {
-            // 3. Confirm Payment
-            const confirmRes = (await confirmWizardPayment(
-              response.razorpay_order_id,
-              response.razorpay_payment_id,
-              response.razorpay_signature
-            )) as any;
-
-            if (confirmRes.success) {
-              window.location.href = `/bookings/${confirmRes.bookingId}`;
-            } else {
-              alert("Payment confirmation failed: " + confirmRes.error);
-            }
-          } catch (err) {
-            console.error(err);
-            alert("An error occurred during confirmation.");
-          }
-        },
-        prefill: orderRes.user,
-        theme: {
-          color: "#b0fb16",
-        },
-        modal: {
-          ondismiss: function () {
-            setIsProcessing(false);
-          },
-        },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", function (response: any) {
-        alert("Payment Failed: " + response.error.description);
-        setIsProcessing(false);
-      });
-      rzp.open();
-    } catch (error) {
-      console.error(error);
-      setIsProcessing(false);
-    }
+    const searchParams = new URLSearchParams();
+    searchParams.set("slots", selectedSlotIds.join(","));
+    searchParams.set("sport", sportSlug);
+    searchParams.set("price", pricePaise.toString());
+    
+    window.location.href = `/checkout?${searchParams.toString()}`;
   };
 
   return (
@@ -210,7 +154,7 @@ export function LiveAvailabilityContent({ slots, date, source }: LiveAvailabilit
                                   <button
                                     onClick={() => {
                                       const p = getTurfPricing(parseInt(time.split(":")[0]), "full");
-                                      handleCheckout([halfA.realSlotId!, halfB.realSlotId!], p.finalPricePaise);
+                                      handleCheckout([halfA.realSlotId!, halfB.realSlotId!], slug, p.finalPricePaise);
                                     }}
                                     className="w-full rounded-lg bg-white/5 px-3 py-2 text-left hover:bg-white/10 transition flex justify-between items-center"
                                   >
@@ -228,7 +172,7 @@ export function LiveAvailabilityContent({ slots, date, source }: LiveAvailabilit
                                       <button
                                         onClick={() => {
                                           const p = getTurfPricing(parseInt(time.split(":")[0]), "full");
-                                          handleCheckout([halfA.realSlotId!, halfB.realSlotId!], p.finalPricePaise);
+                                          handleCheckout([halfA.realSlotId!, halfB.realSlotId!], slug, p.finalPricePaise);
                                         }}
                                         className="w-full rounded-lg bg-white/5 px-3 py-2 text-left hover:bg-white/10 transition flex justify-between items-center"
                                       >
@@ -243,7 +187,7 @@ export function LiveAvailabilityContent({ slots, date, source }: LiveAvailabilit
                                       <button
                                         onClick={() => {
                                           const p = getTurfPricing(parseInt(time.split(":")[0]), "half");
-                                          handleCheckout([halfA.realSlotId!], p.finalPricePaise);
+                                          handleCheckout([halfA.realSlotId!], slug, p.finalPricePaise);
                                         }}
                                         className="w-full rounded-lg bg-white/5 px-3 py-2 text-left hover:bg-white/10 transition flex justify-between items-center"
                                       >
@@ -258,7 +202,7 @@ export function LiveAvailabilityContent({ slots, date, source }: LiveAvailabilit
                                       <button
                                         onClick={() => {
                                           const p = getTurfPricing(parseInt(time.split(":")[0]), "half");
-                                          handleCheckout([halfB.realSlotId!], p.finalPricePaise);
+                                          handleCheckout([halfB.realSlotId!], slug, p.finalPricePaise);
                                         }}
                                         className="w-full rounded-lg bg-white/5 px-3 py-2 text-left hover:bg-white/10 transition flex justify-between items-center"
                                       >

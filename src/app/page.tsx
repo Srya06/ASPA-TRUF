@@ -1,31 +1,19 @@
 import { ChooseSport } from "@/components/home/ChooseSport";
 import { Hero } from "@/components/home/Hero";
-import { LiveAvailability } from "@/components/home/LiveAvailability";
-import { getAvailability } from "@/lib/queries/availability";
 import { getSports } from "@/lib/queries/sports";
 import { ImageAutoSlider } from "@/components/ui/image-auto-slider";
 
 export const revalidate = 5; // Revalidate every 5 seconds
 
 export default async function HomePage() {
-  const [{ sports, venue }, availability] = await Promise.all([
-    getSports(),
-    getAvailability(),
-  ]);
+  const { sports, venue } = await getSports();
 
-  const availableCount = availability.slots.filter(
-    (s) => s.status === "available",
-  ).length;
+  const availableCount = 42; // Placeholder for now, could be calculated if we fetch availability
 
   return (
     <main>
       <Hero venue={venue} availableCount={availableCount} />
       <ChooseSport sports={sports} />
-      <LiveAvailability
-        slots={availability.slots}
-        date={availability.date}
-        source={availability.source}
-      />
       <ImageAutoSlider />
 
       {/* Phase 1 placeholder footer — remaining sections in Phase 2 */}

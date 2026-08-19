@@ -36,14 +36,20 @@ export async function getAdminSlots(startDate: string, endDate: string): Promise
     const court = courtMap.get(slotDoc.courtId as string);
     if (!court) continue;
     
-    const sport = sportMap.get(court.sportId as string);
-    if (!sport) continue;
+    // Fallback if sportId isn't on the court (which happens with generic courts)
+    const sport = court.sportId ? sportMap.get(court.sportId as string) : Array.from(sportMap.values())[0];
 
     let bookingRef;
     let customerName;
 
-    if (slotDoc.status === "booked") {
-       const booking = await bookingsCol.findOne({ slotId: slotDoc._id.toString(), status: 'confirmed' });
+    if (slotDoc.status === "booked" || slotDoc.status === "pending_verification") {
+       const booking = await bookingsCol.findOne({ 
+           $or: [
+               { slotId: slotDoc._id.toString() },
+               { slotIds: slotDoc._id.toString() }
+           ],
+           status: { $in: ['confirmed', 'pending_verification'] }
+       });
        if (booking) {
            bookingRef = booking.bookingRef as string;
            customerName = booking.customerName as string;
@@ -52,7 +58,7 @@ export async function getAdminSlots(startDate: string, endDate: string): Promise
 
     adminSlots.push({
       id: slotDoc._id.toString(),
-      sport_slug: sport.slug as string,
+      sport_slug: (sport?.slug as string) || "generic",
       court_name: court.name as string,
       slot_date: slotDoc.slotDate as string,
       start_time: slotDoc.startTime as string,

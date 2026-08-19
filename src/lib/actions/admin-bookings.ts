@@ -9,10 +9,34 @@ export async function approveBooking(bookingId: string) {
     const bookingsCol = await getCollection("bookings");
     const id = new ObjectId(bookingId);
 
+    const booking = await bookingsCol.findOne({ _id: id });
+    if (!booking) {
+      throw new Error("Booking not found");
+    }
+
     const result = await bookingsCol.updateOne(
       { _id: id },
       { $set: { status: "confirmed", updatedAt: new Date(), confirmedAt: new Date() } }
     );
+
+    // Block the associated slots now that the booking is confirmed
+    const slotsCol = await getCollection("slots");
+    const slotIds = booking.slotIds || (booking.slotId ? [booking.slotId] : []);
+    
+    if (slotIds.length > 0) {
+      const objectIds = slotIds.map((sid: any) => {
+        let querySlotId: any = sid;
+        if (ObjectId.isValid(querySlotId) && typeof querySlotId === 'string' && querySlotId.length === 24) {
+            querySlotId = new ObjectId(querySlotId);
+        }
+        return querySlotId;
+      });
+      
+      await slotsCol.updateMany(
+        { _id: { $in: objectIds } },
+        { $set: { status: 'booked', updatedAt: new Date() } }
+      );
+    }
 
     if (result.matchedCount === 0) {
       throw new Error("Booking not found");
@@ -44,14 +68,19 @@ export async function rejectBooking(bookingId: string) {
       { $set: { status: "cancelled", updatedAt: new Date() } }
     );
 
-    // Unblock the slot
-    if (booking.slotId) {
-      let querySlotId: any = booking.slotId;
-      if (ObjectId.isValid(querySlotId) && typeof querySlotId === 'string' && querySlotId.length === 24) {
-          querySlotId = new ObjectId(querySlotId);
-      }
-      await slotsCol.updateOne(
-        { _id: querySlotId },
+    // Unblock the slots
+    const slotIds = booking.slotIds || (booking.slotId ? [booking.slotId] : []);
+    if (slotIds.length > 0) {
+      const objectIds = slotIds.map((id: any) => {
+        let querySlotId: any = id;
+        if (ObjectId.isValid(querySlotId) && typeof querySlotId === 'string' && querySlotId.length === 24) {
+            querySlotId = new ObjectId(querySlotId);
+        }
+        return querySlotId;
+      });
+      
+      await slotsCol.updateMany(
+        { _id: { $in: objectIds } },
         { $set: { status: "available", updatedAt: new Date() } }
       );
     }
