@@ -44,7 +44,7 @@ export function AdminLoginForm({ callbackUrl }: AdminLoginFormProps) {
     <div className="rounded-2xl border border-white/5 bg-truf-card p-8 shadow-2xl backdrop-blur-sm">
       <div className="mb-8 text-center">
         <h2 className="text-2xl font-black tracking-tight text-white">
-          TRUF Admin Portal
+          TURF Admin Portal
         </h2>
         <p className="mt-2 text-sm text-white/50">
           Enter your admin credentials to sign in.

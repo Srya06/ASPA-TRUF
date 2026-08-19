@@ -23,7 +23,7 @@ export function AdminMobileNav({ email, role }: AdminMobileNavProps) {
   return (
     <div className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-white/5 bg-truf-dark px-4 shadow-md">
       <Link href="/admin" className="text-lg font-black tracking-widest text-truf-lime uppercase" onClick={handleLinkClick}>
-        TRUF Admin
+        TURF Admin
       </Link>
 
       <button

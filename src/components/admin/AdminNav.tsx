@@ -112,7 +112,7 @@ export function AdminNav({ email, role }: AdminNavProps) {
       {/* Logo */}
       <div className="flex h-16 items-center px-6 border-b border-white/5">
         <Link href="/admin" className="text-xl font-black tracking-widest text-truf-lime uppercase">
-          TRUF Admin
+          TURF Admin
         </Link>
       </div>
 
