@@ -35,7 +35,8 @@ export async function getMyBookings(userId: string): Promise<MyBooking[]> {
   const myBookings: MyBooking[] = [];
 
   for (const bookingDoc of bookingDocs) {
-    const firstSlotId = bookingDoc.slotIds?.[0] || bookingDoc.slotId;
+    const slotIds = bookingDoc.slotIds as string[] | undefined;
+    const firstSlotId = slotIds?.[0] || bookingDoc.slotId;
     if (!firstSlotId) continue;
     
     let querySlotId: any = firstSlotId;

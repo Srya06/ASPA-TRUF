@@ -52,8 +52,8 @@ export default async function CheckoutPage(props: {
               {slots.map(slot => (
                 <div key={slot._id.toString()} className="flex justify-between items-center bg-white/5 p-4 rounded-xl">
                   <div>
-                    <p className="text-white font-medium">{slot.courtId}</p>
-                    <p className="text-sm text-white/50">{slot.slotDate} | {formatTime12h(slot.startTime as string)}</p>
+                    <p className="text-white font-medium">{slot.courtId as string}</p>
+                    <p className="text-sm text-white/50">{slot.slotDate as string} | {formatTime12h(slot.startTime as string)}</p>
                   </div>
                 </div>
               ))}

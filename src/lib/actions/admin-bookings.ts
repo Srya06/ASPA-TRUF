@@ -21,10 +21,10 @@ export async function approveBooking(bookingId: string) {
 
     // Block the associated slots now that the booking is confirmed
     const slotsCol = await getCollection("slots");
-    const slotIds = booking.slotIds || (booking.slotId ? [booking.slotId] : []);
+    const slotIds = (booking.slotIds as string[]) || (booking.slotId ? [booking.slotId as string] : []);
     
     if (slotIds.length > 0) {
-      const objectIds = slotIds.map((sid: any) => {
+      const objectIds = slotIds.map((sid: string) => {
         let querySlotId: any = sid;
         if (ObjectId.isValid(querySlotId) && typeof querySlotId === 'string' && querySlotId.length === 24) {
             querySlotId = new ObjectId(querySlotId);
@@ -69,7 +69,7 @@ export async function rejectBooking(bookingId: string) {
     );
 
     // Unblock the slots
-    const slotIds = booking.slotIds || (booking.slotId ? [booking.slotId] : []);
+    const slotIds = (booking.slotIds as string[]) || (booking.slotId ? [booking.slotId as string] : []);
     if (slotIds.length > 0) {
       const objectIds = slotIds.map((id: any) => {
         let querySlotId: any = id;

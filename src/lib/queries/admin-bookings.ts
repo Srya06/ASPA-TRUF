@@ -31,7 +31,8 @@ export async function getAdminBookings(limit = 50): Promise<AdminBooking[]> {
 
   for (const bookingDoc of bookingDocs) {
     let slotDoc = null;
-    const firstSlotId = bookingDoc.slotIds?.[0] || bookingDoc.slotId;
+    const slotIds = bookingDoc.slotIds as string[] | undefined;
+    const firstSlotId = slotIds?.[0] || bookingDoc.slotId;
     if (firstSlotId) {
         let queryId: any = firstSlotId;
         if (ObjectId.isValid(queryId) && (typeof queryId === 'string' && queryId.length === 24)) {
