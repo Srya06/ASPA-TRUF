@@ -1,6 +1,7 @@
 "use server";
 
-import { getCollection, getClient } from "@/lib/db/client";
+import { getCollection, getClient, isDatabaseConfigured } from "@/lib/db/client";
+import { getSlotDetails } from "@/lib/queries/slots";
 import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
 
@@ -10,9 +11,10 @@ export async function submitManualBooking(
   pricePaise: number,
   screenshotBase64: string,
   sportSlug: string
-) {
+): Promise<{ success: boolean; bookingId?: string; error?: string }> {
   let client;
   let session: any;
+  let result: { success: boolean; bookingId?: string; error?: string } = { success: false };
   try {
     const slotsCol = await getCollection("slots");
     const bookingsCol = await getCollection("bookings");
@@ -64,7 +66,7 @@ export async function submitManualBooking(
     revalidatePath("/");
     revalidatePath("/admin/calendar");
     
-    return result;
+    return (result || { success: false }) as { success: boolean; bookingId?: string; error?: string };
   } catch (err: any) {
     console.error("submitManualBooking error:", err);
     return { success: false, error: err.message || "Failed to submit booking" };
@@ -74,3 +76,52 @@ export async function submitManualBooking(
     }
   }
 }
+
+
+
+
+export async function validateCoupon(couponCode: string, basePricePaise: number) {
+  try {
+    if (!isDatabaseConfigured()) return { valid: false, error: "Database not configured" };
+    
+    const couponsCol = await getCollection("coupons");
+    
+    const coupon = await couponsCol.findOne({ 
+      code: couponCode, 
+      isActive: true,
+      validFrom: { $lte: new Date() },
+      $or: [ { validUntil: null }, { validUntil: { $gt: new Date() } } ],
+      $and: [
+         { $or: [ { usageLimit: null }, { $expr: { $lt: ["$usageCount", "$usageLimit"] } } ] }
+      ]
+    });
+
+    if (!coupon) {
+      return { valid: false, error: "Invalid or expired coupon" };
+    }
+
+    if (basePricePaise < (coupon.minOrderValuePaise as number)) {
+      return { valid: false, error: `Minimum order value is Rs. ${(coupon.minOrderValuePaise as number) / 100}` };
+    }
+
+    let discountPaise = 0;
+    if (coupon.discountType === "percentage") {
+      discountPaise = Math.floor((basePricePaise * (coupon.discountValue as number)) / 100);
+      if (coupon.maxDiscountPaise && discountPaise > (coupon.maxDiscountPaise as number)) {
+        discountPaise = coupon.maxDiscountPaise as number;
+      }
+    } else {
+      discountPaise = coupon.discountValue as number;
+    }
+
+    if (discountPaise > basePricePaise) {
+      discountPaise = basePricePaise;
+    }
+
+    return { valid: true, discountPaise };
+  } catch (err: any) {
+    return { valid: false, error: err.message || "Failed to validate coupon" };
+  }
+}
+
+

@@ -48,10 +48,10 @@ export default function CheckoutForm({ slotIds, pricePaise, userId, sportSlug }:
         
         const res = await submitManualBooking(slotIds, userId, pricePaise, base64String, sportSlug);
         
-        if (res.success) {
+        if (res?.success) {
           window.location.href = `/booking-success?bookingId=${res.bookingId}`;
         } else {
-          setError(res.error || "Failed to submit booking");
+          setError(res?.error || "Failed to submit booking");
           setLoading(false);
         }
       };
