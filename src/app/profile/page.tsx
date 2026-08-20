@@ -18,17 +18,37 @@ export default async function ProfilePage() {
   return (
     <main className="min-h-screen bg-truf-dark py-12 sm:py-24">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
-            My Bookings
-          </h1>
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+          <div className="flex items-center gap-4">
+            {session.user.image ? (
+              <img src={session.user.image} alt={session.user.name || "User"} className="h-16 w-16 rounded-full border-2 border-truf-lime object-cover" />
+            ) : (
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-truf-lime/20 border-2 border-truf-lime">
+                <span className="text-xl font-bold text-truf-lime uppercase">
+                  {(session.user.name?.[0] || session.user.email?.[0] || "U")}
+                </span>
+              </div>
+            )}
+            <div>
+              <h1 className="text-2xl font-black tracking-tight text-white capitalize">
+                {session.user.name || session.user.email.split('@')[0]}
+              </h1>
+              <p className="text-white/60 text-sm">{session.user.email}</p>
+            </div>
+          </div>
           <LogoutButton />
         </div>
 
+        <div className="mb-6 flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+          <button className="whitespace-nowrap rounded-full bg-truf-lime px-4 py-2 text-sm font-bold text-truf-dark">My Bookings</button>
+          <button className="whitespace-nowrap rounded-full bg-white/5 px-4 py-2 text-sm font-medium text-white hover:bg-white/10 transition-colors">Upcoming Games</button>
+          <button className="whitespace-nowrap rounded-full bg-white/5 px-4 py-2 text-sm font-medium text-white hover:bg-white/10 transition-colors">Account Settings</button>
+        </div>
+
         {bookings.length === 0 ? (
-          <div className="rounded-2xl border border-white/5 bg-truf-card p-12 text-center">
+          <div className="rounded-2xl border border-white/5 bg-truf-card p-12 text-center mt-6">
             <h3 className="text-xl font-bold text-white mb-2">No bookings yet</h3>
-            <p className="text-white/60 mb-6">You haven't made any bookings on APSA.</p>
+            <p className="text-white/60 mb-6">You haven't made any bookings on TRUF.</p>
             <a href="/" className="inline-block rounded-xl bg-truf-lime px-6 py-3 font-bold text-truf-dark hover:bg-truf-lime/90 transition-colors">
               Explore Sports
             </a>
