@@ -14,6 +14,7 @@ interface CheckoutFormProps {
 export default function CheckoutForm({ slotIds, pricePaise, userId, sportSlug }: CheckoutFormProps) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -32,6 +33,12 @@ export default function CheckoutForm({ slotIds, pricePaise, userId, sportSlug }:
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!phoneNumber || phoneNumber.length < 10) {
+      setError("Please enter a valid phone number so we can contact you.");
+      return;
+    }
+
     if (!file) {
       setError("Please upload a screenshot of your transaction.");
       return;
@@ -46,7 +53,7 @@ export default function CheckoutForm({ slotIds, pricePaise, userId, sportSlug }:
       reader.onloadend = async () => {
         const base64String = reader.result as string;
         
-        const res = await submitManualBooking(slotIds, userId, pricePaise, base64String, sportSlug);
+        const res = await submitManualBooking(slotIds, userId, pricePaise, base64String, sportSlug, phoneNumber);
         
         if (res?.success) {
           window.location.href = `/booking-success?bookingId=${res.bookingId}`;
@@ -76,6 +83,22 @@ export default function CheckoutForm({ slotIds, pricePaise, userId, sportSlug }:
         </div>
         
         <p className="font-mono text-truf-lime text-sm tracking-widest">apsa.turf@upi</p>
+      </div>
+
+      <div className="h-px w-full border-t border-white/10 my-2" />
+
+      {/* Phone Number Section */}
+      <div>
+        <h3 className="text-lg font-bold text-white mb-2">Contact Details</h3>
+        <p className="text-sm text-white/60 mb-4">Please provide your phone number so the admin can confirm your booking.</p>
+        <input 
+          type="tel"
+          placeholder="Enter phone number"
+          value={phoneNumber}
+          onChange={(e) => setPhoneNumber(e.target.value)}
+          className="w-full bg-truf-dark/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-truf-lime transition-colors"
+          required
+        />
       </div>
 
       <div className="h-px w-full border-t border-white/10 my-2" />

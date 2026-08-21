@@ -10,7 +10,8 @@ export async function submitManualBooking(
   userId: string,
   pricePaise: number,
   screenshotBase64: string,
-  sportSlug: string
+  sportSlug: string,
+  phoneNumber?: string
 ): Promise<{ success: boolean; bookingId?: string; error?: string }> {
   let client;
   let session: any;
@@ -49,7 +50,7 @@ export async function submitManualBooking(
         userId,
         sportSlug,
         customerName: user.name || "Customer",
-        customerPhone: user.phone || "",
+        customerPhone: phoneNumber || user.phone || "",
         basePricePaise: pricePaise,
         finalAmountPaise: pricePaise,
         status: 'pending_verification', // Pending manual verification
@@ -66,12 +67,17 @@ export async function submitManualBooking(
       
       if (botToken && chatId) {
         try {
-          const courtNames = [...new Set(slots.map(s => String(s.court_name)))].join(", ");
-          const dateStrs = [...new Set(slots.map(s => new Date(String(s.slot_date)).toLocaleDateString("en-IN", {
+          const detailedSlots = await Promise.all(slotIds.map(id => getSlotDetails(id)));
+          const validSlots = detailedSlots.filter(s => s !== null);
+          
+          const courtNames = [...new Set(validSlots.map(s => String(s!.court_name)))].join(", ");
+          const dateStrs = [...new Set(validSlots.map(s => new Date(String(s!.slot_date)).toLocaleDateString("en-IN", {
             weekday: "short", day: "numeric", month: "short"
           })))].join(", ");
-          const times = slots.map(s => `${String(s.start_time)} - ${String(s.end_time)}`).join(", ");
+          const times = validSlots.map(s => `${String(s!.start_time)} - ${String(s!.end_time)}`).join(", ");
           const finalAmount = pricePaise;
+
+          const customerPhone = phoneNumber || user.phone || "N/A";
 
           const message = `🚨 *New Booking Alert!* 🚨\n\n` +
                           `*Booking Ref:* ${bookingRef}\n` +
@@ -80,7 +86,7 @@ export async function submitManualBooking(
                           `*Date:* ${dateStrs}\n` +
                           `*Time:* ${times}\n\n` +
                           `*Customer:* ${user.name || "Customer"}\n` +
-                          `*Phone:* ${user.phone || "N/A"}\n\n` +
+                          `*Phone:* ${customerPhone}\n\n` +
                           `*Amount:* ₹${(finalAmount / 100).toFixed(2)}\n` +
                           `*Status:* Pending Verification (Check Database for screenshot)`;
 
