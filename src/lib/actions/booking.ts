@@ -60,6 +60,44 @@ export async function submitManualBooking(
       
       const bookingId = insertBookingRes.insertedId.toString();
 
+      // Trigger Telegram Notification
+      const botToken = process.env.TELEGRAM_BOT_TOKEN;
+      const chatId = process.env.TELEGRAM_CHAT_ID;
+      
+      if (botToken && chatId) {
+        try {
+          const courtNames = [...new Set(slots.map(s => s.court_name))].join(", ");
+          const dateStrs = [...new Set(slots.map(s => new Date(s.slot_date).toLocaleDateString("en-IN", {
+            weekday: "short", day: "numeric", month: "short"
+          })))].join(", ");
+          const times = slots.map(s => `${s.start_time} - ${s.end_time}`).join(", ");
+          const finalAmount = pricePaise;
+
+          const message = `🚨 *New Booking Alert!* 🚨\n\n` +
+                          `*Booking Ref:* ${bookingRef}\n` +
+                          `*Sport:* ${sportSlug.toUpperCase()}\n` +
+                          `*Court:* ${courtNames}\n` +
+                          `*Date:* ${dateStrs}\n` +
+                          `*Time:* ${times}\n\n` +
+                          `*Customer:* ${user.name || "Customer"}\n` +
+                          `*Phone:* ${user.phone || "N/A"}\n\n` +
+                          `*Amount:* ₹${(finalAmount / 100).toFixed(2)}\n` +
+                          `*Status:* Pending Verification (Check Database for screenshot)`;
+
+          fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: message,
+              parse_mode: "Markdown"
+            })
+          }).catch(console.error); // Fire and forget
+        } catch (e) {
+          console.error("Telegram notification setup failed:", e);
+        }
+      }
+
       result = { success: true, bookingId };
     });
 
