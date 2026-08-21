@@ -66,11 +66,11 @@ export async function submitManualBooking(
       
       if (botToken && chatId) {
         try {
-          const courtNames = [...new Set(slots.map(s => s.court_name))].join(", ");
-          const dateStrs = [...new Set(slots.map(s => new Date(s.slot_date).toLocaleDateString("en-IN", {
+          const courtNames = [...new Set(slots.map(s => String(s.court_name)))].join(", ");
+          const dateStrs = [...new Set(slots.map(s => new Date(String(s.slot_date)).toLocaleDateString("en-IN", {
             weekday: "short", day: "numeric", month: "short"
           })))].join(", ");
-          const times = slots.map(s => `${s.start_time} - ${s.end_time}`).join(", ");
+          const times = slots.map(s => `${String(s.start_time)} - ${String(s.end_time)}`).join(", ");
           const finalAmount = pricePaise;
 
           const message = `🚨 *New Booking Alert!* 🚨\n\n` +
