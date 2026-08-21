@@ -25,36 +25,53 @@ export async function getAdminBookings(limit = 50): Promise<AdminBooking[]> {
   const courtsCol = await getCollection("courts");
   const sportsCol = await getCollection("sports");
 
+  // Fetch all courts and sports into memory (they are very small collections)
+  const allCourts = await courtsCol.find({}).toArray();
+  const allSports = await sportsCol.find({}).toArray();
+  
+  const courtsMap = new Map(allCourts.map(c => [c._id.toString(), c]));
+  const sportsMapId = new Map(allSports.map(s => [s._id.toString(), s]));
+  const sportsMapSlug = new Map(allSports.map(s => [s.slug as string, s]));
+  const defaultSport = allSports.find(s => s.isActive);
+
   const bookingDocs = await bookingsCol.find({}).sort({ createdAt: -1 }).limit(limit).toArray();
+
+  // Extract all unique slot IDs
+  const slotObjectIds: ObjectId[] = [];
+  for (const b of bookingDocs) {
+    const slotIds = b.slotIds as string[] | undefined;
+    const firstSlotId = slotIds?.[0] || b.slotId;
+    if (firstSlotId && ObjectId.isValid(firstSlotId as string)) {
+        slotObjectIds.push(new ObjectId(firstSlotId as string));
+    }
+  }
+
+  // Fetch all related slots at once
+  const slotDocs = await slotsCol.find({ _id: { $in: slotObjectIds } }).toArray();
+  const slotsMap = new Map(slotDocs.map(s => [s._id.toString(), s]));
 
   const adminBookings: AdminBooking[] = [];
 
   for (const bookingDoc of bookingDocs) {
-    let slotDoc = null;
     const slotIds = bookingDoc.slotIds as string[] | undefined;
     const firstSlotId = slotIds?.[0] || bookingDoc.slotId;
-    if (firstSlotId) {
-        let queryId: any = firstSlotId;
-        if (ObjectId.isValid(queryId) && (typeof queryId === 'string' && queryId.length === 24)) {
-            queryId = new ObjectId(queryId);
-        }
-        slotDoc = await slotsCol.findOne({ _id: queryId });
-    }
+    if (!firstSlotId) continue;
+
+    const slotDoc = slotsMap.get(firstSlotId as string);
     if (!slotDoc) continue;
 
-    const courtDoc = await courtsCol.findOne({ _id: slotDoc.courtId as any });
+    const courtDoc = courtsMap.get((slotDoc.courtId as any)?.toString());
     if (!courtDoc) continue;
 
-    // Handle generic courts by using the sportSlug saved in the booking
     let sportDoc = null;
     if (bookingDoc.sportSlug) {
-        sportDoc = await sportsCol.findOne({ slug: bookingDoc.sportSlug as string });
+        sportDoc = sportsMapSlug.get(bookingDoc.sportSlug as string);
     } else if (courtDoc.sportId) {
-        sportDoc = await sportsCol.findOne({ _id: courtDoc.sportId as any });
+        sportDoc = sportsMapId.get((courtDoc.sportId as any)?.toString());
     }
     
     if (!sportDoc) {
-        sportDoc = await sportsCol.findOne({ isActive: true }); // Legacy fallback
+        sportDoc = defaultSport;
     }
     if (!sportDoc) continue;
 
