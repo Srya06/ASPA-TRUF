@@ -77,12 +77,11 @@ export default function CheckoutForm({ slotIds, pricePaise, userId, sportSlug }:
         <h3 className="text-lg font-bold text-white mb-2">Scan & Pay</h3>
         <p className="text-sm text-white/60 mb-4">Scan this QR code with any UPI app to pay.</p>
         
-        <div className="mx-auto w-48 h-48 bg-white rounded-2xl p-4 flex items-center justify-center mb-4 relative group">
-          {/* Dummy QR placeholder - would be replaced by actual QR image */}
-          <QrCode className="w-full h-full text-black/80" strokeWidth={1} />
+        <div className="mx-auto w-48 h-48 bg-white rounded-2xl p-1 flex items-center justify-center mb-4 overflow-hidden relative group">
+          <img src="/qr-code.jpg" alt="Payment QR Code" className="w-full h-full object-contain" />
         </div>
         
-        <p className="font-mono text-truf-lime text-sm tracking-widest">apsa.turf@upi</p>
+        <p className="font-mono text-truf-lime text-sm tracking-widest">9743588814@ybl</p>
       </div>
 
       <div className="h-px w-full border-t border-white/10 my-2" />
