@@ -111,7 +111,7 @@ export function SportCard({ sport, index }: SportCardProps) {
           className="mt-4 overflow-hidden"
           initial={false}
         >
-          <div className="translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+          <div className="translate-y-0 opacity-100 transition-all duration-300 md:translate-y-4 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100">
             <a
               href={`/sports/${sport.slug}`}
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-truf-lime py-3 text-sm font-bold text-truf-dark transition-colors hover:bg-truf-lime/90"
