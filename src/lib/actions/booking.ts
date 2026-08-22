@@ -79,16 +79,16 @@ export async function submitManualBooking(
 
           const customerPhone = phoneNumber || user.phone || "N/A";
 
-          const message = `🚨 *New Booking Alert!* 🚨\n\n` +
-                          `*Booking Ref:* ${bookingRef}\n` +
-                          `*Sport:* ${sportSlug.toUpperCase()}\n` +
-                          `*Court:* ${courtNames}\n` +
-                          `*Date:* ${dateStrs}\n` +
-                          `*Time:* ${times}\n\n` +
-                          `*Customer:* ${user.name || "Customer"}\n` +
-                          `*Phone:* ${customerPhone}\n\n` +
-                          `*Amount:* ₹${(finalAmount / 100).toFixed(2)}\n` +
-                          `*Status:* Pending Verification (Check Database for screenshot)`;
+          const message = `🚨 New Booking Alert! 🚨\n\n` +
+                          `Booking Ref: ${bookingRef}\n` +
+                          `Sport: ${sportSlug.toUpperCase()}\n` +
+                          `Court: ${courtNames}\n` +
+                          `Date: ${dateStrs}\n` +
+                          `Time: ${times}\n\n` +
+                          `Customer: ${user.name || "Customer"}\n` +
+                          `Phone: ${customerPhone}\n\n` +
+                          `Amount: ₹${(finalAmount / 100).toFixed(2)}\n` +
+                          `Status: Pending Verification (Check Database for screenshot)`;
 
           // Send Text Message
           await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -96,8 +96,7 @@ export async function submitManualBooking(
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               chat_id: chatId,
-              text: message,
-              parse_mode: "Markdown"
+              text: message
             })
           });
         } catch (e) {

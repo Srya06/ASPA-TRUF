@@ -71,8 +71,7 @@ export async function approveBooking(bookingId: string) {
 
         const formData = new FormData();
         formData.append('chat_id', chatId);
-        formData.append('caption', `✅ *Booking Approved!*\nHere is the generated invoice for Booking Ref: ${booking.bookingRef}`);
-        formData.append('parse_mode', 'Markdown');
+        formData.append('caption', `✅ Booking Approved!\nHere is the generated invoice for Booking Ref: ${booking.bookingRef}`);
         
         const blob = new Blob([new Uint8Array(pdfBuffer)], { type: 'application/pdf' });
         formData.append('document', blob, `Invoice_${booking.bookingRef}.pdf`);
