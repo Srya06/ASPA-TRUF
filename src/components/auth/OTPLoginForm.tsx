@@ -234,6 +234,14 @@ export function OTPLoginForm({ callbackUrl, isAdminLogin }: OTPLoginFormProps) {
           </motion.form>
         )}
       </AnimatePresence>
+
+      {!isAdminLogin && (
+        <div className="mt-8 border-t border-white/10 pt-6 text-center">
+          <a href="/admin" className="text-xs text-white/30 hover:text-white/60 transition-colors uppercase tracking-widest">
+            Admin Portal Access
+          </a>
+        </div>
+      )}
     </div>
   );
 }
