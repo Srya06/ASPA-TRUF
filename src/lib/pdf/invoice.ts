@@ -1,4 +1,4 @@
-import PDFDocument from 'pdfkit';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
 export interface InvoiceData {
   bookingRef: string;
@@ -27,136 +27,130 @@ function numberToWords(num: number): string {
   return str.trim();
 }
 
-export function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    try {
-      const doc = new PDFDocument({ margin: 50, size: 'A4' });
-      const buffers: Buffer[] = [];
-      
-      doc.on('data', buffers.push.bind(buffers));
-      doc.on('end', () => {
-        resolve(Buffer.concat(buffers));
-      });
+export async function generateInvoicePDF(data: InvoiceData): Promise<Uint8Array> {
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([595.28, 841.89]); // A4 size
+  const { height } = page.getSize();
+  
+  const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  
+  const grandTotal = data.finalAmountPaise / 100;
+  const baseAmount = grandTotal / 1.18;
+  const cgst = baseAmount * 0.09;
+  const sgst = baseAmount * 0.09;
+  
+  const formatCurrency = (val: number) => `Rs. ${val.toFixed(2)}`;
+  
+  const drawText = (text: string, x: number, y: number, size: number, isBold = false, align = 'left') => {
+    const font = isBold ? fontBold : fontRegular;
+    const textWidth = font.widthOfTextAtSize(text, size);
+    let finalX = x;
+    if (align === 'right') finalX = x - textWidth;
+    if (align === 'center') finalX = x - (textWidth / 2);
+    
+    page.drawText(text, { x: finalX, y: height - y, size, font, color: rgb(0,0,0) });
+  };
+  
+  const drawLine = (x1: number, y1: number, x2: number, y2: number, color = rgb(0.8,0.8,0.8), thickness = 1) => {
+    page.drawLine({ start: { x: x1, y: height - y1 }, end: { x: x2, y: height - y2 }, color, thickness });
+  };
 
-      const grandTotal = data.finalAmountPaise / 100;
-      const baseAmount = grandTotal / 1.18;
-      const cgst = baseAmount * 0.09;
-      const sgst = baseAmount * 0.09;
-      
-      const formatCurrency = (val: number) => `Rs. ${val.toFixed(2)}`;
+  // HEADER
+  drawText('ATHLETE PARK SPORTS', 50, 50, 20, true);
+  drawText('ACADEMY', 50, 75, 20, true);
+  
+  drawText('Rathnapuri Main Road, Hunsur, Mysuru, Karnataka - 571105', 50, 100, 10);
+  drawText('Building No.: 3541/1, 3541/2, 3541/7, 3541/8', 50, 115, 10);
+  drawText('GSTIN: 29AAWAA4734A1ZN', 50, 130, 10, true);
 
-      // HEADER
-      doc.fontSize(20).font('Helvetica-Bold').text('ATHLETE PARK SPORTS', 50, 50);
-      doc.text('ACADEMY', 50, 75);
-      
-      doc.fontSize(10).font('Helvetica')
-         .text('Rathnapuri Main Road, Hunsur, Mysuru, Karnataka - 571105', 50, 100)
-         .text('Building No.: 3541/1, 3541/2, 3541/7, 3541/8', 50, 115)
-         .font('Helvetica-Bold')
-         .text('GSTIN: 29AAWAA4734A1ZN', 50, 130);
+  // TAX INVOICE (Right Aligned)
+  drawText('TAX INVOICE', 545, 50, 16, true, 'right');
+  drawText(`Invoice No.: ${data.bookingRef}`, 545, 75, 10, false, 'right');
+  drawText(`Invoice Date: ${data.dateStr}`, 545, 90, 10, false, 'right');
+  drawText(`Place of Supply: Karnataka`, 545, 105, 10, false, 'right');
 
-      // TAX INVOICE (Right Aligned)
-      doc.fontSize(16).font('Helvetica-Bold').text('TAX INVOICE', 400, 50, { align: 'right' });
-      doc.fontSize(10).font('Helvetica')
-         .text(`Invoice No.: ${data.bookingRef}`, 350, 75, { align: 'right' })
-         .text(`Invoice Date: ${data.dateStr}`, 350, 90, { align: 'right' })
-         .text(`Place of Supply: Karnataka`, 350, 105, { align: 'right' });
+  // Horizontal Line
+  drawLine(50, 150, 545, 150, rgb(0.66, 0, 0), 2);
 
-      // Horizontal Line
-      doc.moveTo(50, 150).lineTo(545, 150).strokeColor('#aa0000').lineWidth(2).stroke();
-      doc.strokeColor('#000000').lineWidth(1);
+  // BILL TO SECTION
+  const startY = 170;
+  drawText('BILL TO', 50, startY, 11, true);
+  drawText(`Customer / Company Name: ${data.customerName}`, 50, startY + 20, 10);
+  drawText(`Address: `, 50, startY + 35, 10);
+  drawText(`GSTIN (if applicable): `, 50, startY + 50, 10);
+  drawText(`Contact / Email: ${data.customerPhone}`, 50, startY + 65, 10);
 
-      // BILL TO SECTION
-      const startY = 170;
-      doc.fontSize(11).font('Helvetica-Bold').text('BILL TO', 50, startY);
-      doc.fontSize(10).font('Helvetica')
-         .text(`Customer / Company Name: ${data.customerName}`, 50, startY + 20)
-         .text(`Address: `, 50, startY + 35)
-         .text(`GSTIN (if applicable): `, 50, startY + 50)
-         .text(`Contact / Email: ${data.customerPhone}`, 50, startY + 65);
+  // BOOKING DETAILS SECTION
+  drawText('BOOKING DETAILS', 300, startY, 11, true);
+  drawText(`Booking / Reference No.:`, 300, startY + 20, 10);
+  drawText(data.bookingRef, 300, startY + 35, 10);
+  drawText(`Payment Mode:`, 300, startY + 50, 10);
+  drawText(`UPI`, 300, startY + 65, 10);
 
-      // BOOKING DETAILS SECTION
-      doc.fontSize(11).font('Helvetica-Bold').text('BOOKING DETAILS', 300, startY);
-      doc.fontSize(10).font('Helvetica')
-         .text(`Booking / Reference No.:`, 300, startY + 20)
-         .text(data.bookingRef, 300, startY + 35)
-         .text(`Payment Mode:`, 300, startY + 50)
-         .text(`UPI`, 300, startY + 65);
+  // Divider lines for sections
+  drawLine(50, startY + 85, 545, startY + 85);
 
-      // Divider lines for sections
-      doc.moveTo(50, startY + 85).lineTo(545, startY + 85).strokeColor('#e5e5e5').stroke();
+  // TABLE HEADER
+  const tableTop = 280;
+  drawText('Serial Number', 95, tableTop, 10, true, 'center');
+  drawText('Sports Booked For', 225, tableTop, 10, true, 'center');
+  drawText('Time Slot', 375, tableTop, 10, true, 'center');
+  drawText('Amount', 495, tableTop, 10, true, 'center');
 
-      // TABLE HEADER
-      const tableTop = 280;
-      doc.font('Helvetica-Bold');
-      doc.text('Serial Number', 50, tableTop, { width: 90, align: 'center' });
-      doc.text('Sports Booked For', 150, tableTop, { width: 150, align: 'center' });
-      doc.text('Time Slot', 310, tableTop, { width: 130, align: 'center' });
-      doc.text('Amount', 450, tableTop, { width: 90, align: 'center' });
+  // Draw table header lines
+  drawLine(50, tableTop - 15, 545, tableTop - 15);
+  drawLine(50, tableTop + 5, 545, tableTop + 5);
 
-      // Draw table header lines
-      doc.moveTo(50, tableTop - 10).lineTo(545, tableTop - 10).strokeColor('#e5e5e5').stroke();
-      doc.moveTo(50, tableTop + 20).lineTo(545, tableTop + 20).strokeColor('#e5e5e5').stroke();
+  // TABLE ROW
+  const rowTop = tableTop + 25;
+  drawText('1', 95, rowTop, 10, false, 'center');
+  drawText(data.sportNames, 225, rowTop, 10, false, 'center');
+  drawText(data.timeSlots, 375, rowTop, 10, false, 'center');
+  drawText(formatCurrency(baseAmount), 540, rowTop, 10, false, 'right');
 
-      // TABLE ROW
-      const rowTop = tableTop + 40;
-      doc.font('Helvetica');
-      doc.text('1', 50, rowTop, { width: 90, align: 'center' });
-      doc.text(data.sportNames, 150, rowTop, { width: 150, align: 'center' });
-      doc.text(data.timeSlots, 310, rowTop, { width: 130, align: 'center' });
-      doc.text(formatCurrency(baseAmount), 450, rowTop, { width: 90, align: 'right' });
+  // Draw table bottom line
+  drawLine(50, rowTop + 15, 545, rowTop + 15);
 
-      // Draw table bottom line
-      doc.moveTo(50, rowTop + 30).lineTo(545, rowTop + 30).strokeColor('#e5e5e5').stroke();
+  // TOTALS SECTION
+  const totalsTop = rowTop + 35;
+  drawText('Subtotal', 50, totalsTop, 10);
+  drawText(formatCurrency(baseAmount), 540, totalsTop, 10, false, 'right');
 
-      // TOTALS SECTION
-      const totalsTop = rowTop + 50;
-      doc.font('Helvetica');
-      doc.text('Subtotal', 50, totalsTop);
-      doc.text(formatCurrency(baseAmount), 450, totalsTop, { width: 90, align: 'right' });
+  drawText('CGST', 50, totalsTop + 20, 10);
+  drawText(formatCurrency(cgst), 540, totalsTop + 20, 10, false, 'right');
 
-      doc.text('CGST', 50, totalsTop + 20);
-      doc.text(formatCurrency(cgst), 450, totalsTop + 20, { width: 90, align: 'right' });
+  drawText('SGST', 50, totalsTop + 40, 10);
+  drawText(formatCurrency(sgst), 540, totalsTop + 40, 10, false, 'right');
 
-      doc.text('SGST', 50, totalsTop + 40);
-      doc.text(formatCurrency(sgst), 450, totalsTop + 40, { width: 90, align: 'right' });
+  drawText('IGST', 50, totalsTop + 60, 10);
+  drawText('-', 540, totalsTop + 60, 10, false, 'right');
 
-      doc.text('IGST', 50, totalsTop + 60);
-      doc.text('-', 450, totalsTop + 60, { width: 90, align: 'right' });
+  drawLine(50, totalsTop + 75, 545, totalsTop + 75);
 
-      doc.moveTo(50, totalsTop + 80).lineTo(545, totalsTop + 80).strokeColor('#e5e5e5').stroke();
+  drawText('GRAND TOTAL', 50, totalsTop + 90, 10, true);
+  drawText(formatCurrency(grandTotal), 540, totalsTop + 90, 10, true, 'right');
 
-      doc.font('Helvetica-Bold');
-      doc.text('GRAND TOTAL', 50, totalsTop + 90);
-      doc.text(formatCurrency(grandTotal), 450, totalsTop + 90, { width: 90, align: 'right' });
+  drawLine(50, totalsTop + 105, 545, totalsTop + 105, rgb(0,0,0), 1);
 
-      doc.moveTo(50, totalsTop + 110).lineTo(545, totalsTop + 110).strokeColor('#000000').stroke();
+  // AMOUNT IN WORDS
+  const wordsTop = totalsTop + 130;
+  drawText('Amount in Words', 50, wordsTop, 10, true);
+  drawText(`Rupees ${numberToWords(Math.round(grandTotal))} only.`, 50, wordsTop + 15, 10);
 
-      // AMOUNT IN WORDS
-      const wordsTop = totalsTop + 140;
-      doc.font('Helvetica-Bold');
-      doc.text('Amount in Words', 50, wordsTop);
-      doc.font('Helvetica');
-      doc.text(`Rupees ${numberToWords(Math.round(grandTotal))} only.`, 50, wordsTop + 15);
+  // SIGNATORY
+  drawText('For ATHLETE PARK SPORTS ACADEMY', 545, wordsTop, 9, true, 'right');
+  drawText('Authorized Signatory', 545, wordsTop + 40, 9, false, 'right');
 
-      // SIGNATORY
-      doc.font('Helvetica-Bold').fontSize(9);
-      doc.text('For ATHLETE PARK SPORTS ACADEMY', 250, wordsTop, { align: 'right', width: 295 });
-      doc.font('Helvetica').fontSize(9);
-      doc.text('Authorized Signatory', 250, wordsTop + 40, { align: 'right', width: 295 });
+  // FOOTER
+  drawText(
+    'ATHLETE PARK SPORTS ACADEMY • Rathnapuri Main Road, Hunsur, Mysuru, Karnataka - 571105 • GSTIN 29AAWAA4734A1ZN',
+    297.5,
+    800,
+    7,
+    false,
+    'center'
+  );
 
-      // FOOTER
-      doc.fontSize(7).fillColor('#666666');
-      doc.text(
-        'ATHLETE PARK SPORTS ACADEMY • Rathnapuri Main Road, Hunsur, Mysuru, Karnataka - 571105 • GSTIN 29AAWAA4734A1ZN',
-        50,
-        780,
-        { align: 'center', width: 495 }
-      );
-
-      doc.end();
-    } catch (err) {
-      reject(err);
-    }
-  });
+  return await pdfDoc.save();
 }

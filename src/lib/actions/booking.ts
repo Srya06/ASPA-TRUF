@@ -94,8 +94,8 @@ export async function submitManualBooking(
           // Generate PDF Invoice
           const pdfBuffer = await generateInvoicePDF({
             bookingRef,
-            customerName: user.name || "Customer",
-            customerPhone,
+            customerName: String(user.name || "Customer"),
+            customerPhone: String(customerPhone),
             sportNames: sportSlug.toUpperCase(),
             timeSlots: times,
             finalAmountPaise: finalAmount,
@@ -108,7 +108,7 @@ export async function submitManualBooking(
           formData.append('caption', message);
           formData.append('parse_mode', 'Markdown');
           
-          const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
+          const blob = new Blob([new Uint8Array(pdfBuffer)], { type: 'application/pdf' });
           formData.append('document', blob, `Invoice_${bookingRef}.pdf`);
 
           fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
