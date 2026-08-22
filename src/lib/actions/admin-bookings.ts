@@ -42,6 +42,50 @@ export async function approveBooking(bookingId: string) {
       throw new Error("Booking not found");
     }
 
+    // Generate and send PDF Invoice
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+    
+    if (botToken && chatId) {
+      try {
+        const { generateInvoicePDF } = await import("@/lib/pdf/invoice");
+        const { getSlotDetails } = await import("@/lib/queries/slots");
+        
+        const detailedSlots = await Promise.all(slotIds.map((id: string) => getSlotDetails(id)));
+        const validSlots = detailedSlots.filter((s: any) => s !== null);
+        
+        const times = validSlots.map((s: any) => `${String(s.start_time)} - ${String(s.end_time)}`).join(", ");
+        const dateStrs = [...new Set(validSlots.map((s: any) => new Date(String(s.slot_date)).toLocaleDateString("en-IN", {
+          weekday: "short", day: "numeric", month: "short"
+        })))].join(", ");
+
+        const pdfBuffer = await generateInvoicePDF({
+          bookingRef: String(booking.bookingRef),
+          customerName: String(booking.customerName || "Customer"),
+          customerPhone: String(booking.customerPhone || "N/A"),
+          sportNames: String(booking.sportSlug || "SPORT").toUpperCase(),
+          timeSlots: times,
+          finalAmountPaise: Number(booking.finalAmountPaise || 0),
+          dateStr: dateStrs
+        });
+
+        const formData = new FormData();
+        formData.append('chat_id', chatId);
+        formData.append('caption', `✅ *Booking Approved!*\nHere is the generated invoice for Booking Ref: ${booking.bookingRef}`);
+        formData.append('parse_mode', 'Markdown');
+        
+        const blob = new Blob([new Uint8Array(pdfBuffer)], { type: 'application/pdf' });
+        formData.append('document', blob, `Invoice_${booking.bookingRef}.pdf`);
+
+        await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
+          method: 'POST',
+          body: formData
+        });
+      } catch (e) {
+        console.error("Failed to generate/send PDF on approval:", e);
+      }
+    }
+
     revalidatePath("/admin/bookings");
     revalidatePath("/profile");
 

@@ -4,7 +4,6 @@ import { getCollection, getClient, isDatabaseConfigured } from "@/lib/db/client"
 import { getSlotDetails } from "@/lib/queries/slots";
 import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
-import { generateInvoicePDF } from "@/lib/pdf/invoice";
 
 export async function submitManualBooking(
   slotIds: string[],
@@ -91,7 +90,7 @@ export async function submitManualBooking(
                           `*Amount:* ₹${(finalAmount / 100).toFixed(2)}\n` +
                           `*Status:* Pending Verification (Check Database for screenshot)`;
 
-          // Send Text Message first for reliability
+          // Send Text Message
           await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -100,29 +99,6 @@ export async function submitManualBooking(
               text: message,
               parse_mode: "Markdown"
             })
-          });
-
-          // Generate PDF Invoice
-          const pdfBuffer = await generateInvoicePDF({
-            bookingRef,
-            customerName: String(user.name || "Customer"),
-            customerPhone: String(customerPhone),
-            sportNames: sportSlug.toUpperCase(),
-            timeSlots: times,
-            finalAmountPaise: finalAmount,
-            dateStr: dateStrs
-          });
-
-          // Send PDF via Telegram
-          const formData = new FormData();
-          formData.append('chat_id', chatId);
-          
-          const blob = new Blob([new Uint8Array(pdfBuffer)], { type: 'application/pdf' });
-          formData.append('document', blob, `Invoice_${bookingRef}.pdf`);
-
-          await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
-            method: 'POST',
-            body: formData
           });
         } catch (e) {
           console.error("Telegram notification setup failed:", e);
