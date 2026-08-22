@@ -91,6 +91,17 @@ export async function submitManualBooking(
                           `*Amount:* ₹${(finalAmount / 100).toFixed(2)}\n` +
                           `*Status:* Pending Verification (Check Database for screenshot)`;
 
+          // Send Text Message first for reliability
+          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: message,
+              parse_mode: "Markdown"
+            })
+          });
+
           // Generate PDF Invoice
           const pdfBuffer = await generateInvoicePDF({
             bookingRef,
@@ -102,19 +113,17 @@ export async function submitManualBooking(
             dateStr: dateStrs
           });
 
-          // Send via Telegram
+          // Send PDF via Telegram
           const formData = new FormData();
           formData.append('chat_id', chatId);
-          formData.append('caption', message);
-          formData.append('parse_mode', 'Markdown');
           
           const blob = new Blob([new Uint8Array(pdfBuffer)], { type: 'application/pdf' });
           formData.append('document', blob, `Invoice_${bookingRef}.pdf`);
 
-          fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
+          await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
             method: 'POST',
             body: formData
-          }).catch(console.error); // Fire and forget
+          });
         } catch (e) {
           console.error("Telegram notification setup failed:", e);
         }
