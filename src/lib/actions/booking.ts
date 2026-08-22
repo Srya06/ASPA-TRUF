@@ -9,7 +9,7 @@ export async function submitManualBooking(
   slotIds: string[],
   userId: string,
   pricePaise: number,
-  screenshotBase64: string,
+  utr: string,
   sportSlug: string,
   phoneNumber?: string
 ): Promise<{ success: boolean; bookingId?: string; error?: string }> {
@@ -54,7 +54,7 @@ export async function submitManualBooking(
         basePricePaise: pricePaise,
         finalAmountPaise: pricePaise,
         status: 'pending_verification', // Pending manual verification
-        screenshotBase64, // The uploaded payment proof
+        utr, // The submitted UTR for verification
         createdAt: new Date(),
         updatedAt: new Date()
       }, { session });
@@ -88,7 +88,8 @@ export async function submitManualBooking(
                           `Customer: ${user.name || "Customer"}\n` +
                           `Phone: ${customerPhone}\n\n` +
                           `Amount: ₹${(finalAmount / 100).toFixed(2)}\n` +
-                          `Status: Pending Verification (Check Database for screenshot)`;
+                          `Status: Pending Verification\n` +
+                          `UTR: ${utr}`;
 
           // Send Text Message
           await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {

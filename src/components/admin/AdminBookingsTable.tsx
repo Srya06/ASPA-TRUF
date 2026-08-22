@@ -74,14 +74,11 @@ export function AdminBookingsTable({ bookings }: { bookings: AdminBooking[] }) {
 
               <div className="flex justify-between items-center border-t border-white/5 pt-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-white/50">Proof:</span>
-                  {b.screenshot_base64 ? (
-                    <button 
-                      onClick={() => setModalImage(b.screenshot_base64 as string)}
-                      className="text-xs font-bold text-blue-400 hover:text-blue-300 underline underline-offset-2"
-                    >
-                      View
-                    </button>
+                  <span className="text-xs text-white/50">UTR:</span>
+                  {b.utr ? (
+                    <span className="text-xs font-mono font-bold text-truf-lime">
+                      {b.utr}
+                    </span>
                   ) : (
                     <span className="text-xs text-white/20">None</span>
                   )}
@@ -126,7 +123,7 @@ export function AdminBookingsTable({ bookings }: { bookings: AdminBooking[] }) {
               <th className="px-4 py-3">Customer</th>
               <th className="px-4 py-3">Sport / Court</th>
               <th className="px-4 py-3">Date & Time</th>
-              <th className="px-4 py-3">Proof</th>
+              <th className="px-4 py-3">UTR</th>
               <th className="px-4 py-3">Amount</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3 text-right">Actions</th>
@@ -155,13 +152,10 @@ export function AdminBookingsTable({ bookings }: { bookings: AdminBooking[] }) {
                   </p>
                 </td>
                 <td className="px-4 py-3">
-                  {b.screenshot_base64 ? (
-                    <button 
-                      onClick={() => setModalImage(b.screenshot_base64 as string)}
-                      className="text-xs font-medium text-blue-400 hover:text-blue-300 underline underline-offset-2"
-                    >
-                      View Image
-                    </button>
+                  {b.utr ? (
+                    <span className="font-mono text-xs font-bold text-truf-lime bg-truf-lime/10 px-2 py-1 rounded">
+                      {b.utr}
+                    </span>
                   ) : (
                     <span className="text-xs text-white/20">None</span>
                   )}

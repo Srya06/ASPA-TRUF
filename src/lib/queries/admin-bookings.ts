@@ -15,7 +15,7 @@ export interface AdminBooking {
   end_time: string;
   final_amount_paise: number;
   created_at: string;
-  screenshot_base64?: string;
+  utr?: string;
   slot_id: string;
 }
 
@@ -88,7 +88,7 @@ export async function getAdminBookings(limit = 50): Promise<AdminBooking[]> {
       end_time: slotDoc.endTime as string,
       final_amount_paise: bookingDoc.finalAmountPaise as number,
       created_at: (bookingDoc.createdAt as Date).toISOString(),
-      screenshot_base64: bookingDoc.screenshotBase64 as string | undefined,
+      utr: bookingDoc.utr as string | undefined,
       slot_id: slotDoc._id.toString(),
     });
   }
