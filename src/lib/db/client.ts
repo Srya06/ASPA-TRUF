@@ -4,33 +4,19 @@ import { MongoClient, Db } from "mongodb";
 
 // In development mode, use a global variable so that the value
 // is preserved across module reloads caused by HMR (Hot Module Replacement).
-let clientPromise: Promise<MongoClient>;
 const DB_NAME = "truf";
 
+// Global connection cache
+let cachedClient: MongoClient | null = null;
+let clientPromise: Promise<MongoClient> | null = null;
+
 if (process.env.NODE_ENV === "development") {
-  // In development mode, use a global variable so that the value
-  // is preserved across module reloads caused by HMR (Hot Module Replacement).
   let globalWithMongo = global as typeof globalThis & {
     _mongoClientPromise?: Promise<MongoClient>;
+    _mongoClient?: MongoClient;
   };
-
-  if (!globalWithMongo._mongoClientPromise) {
-    const uri = process.env.MONGODB_URI || "mongodb://dummy-for-build";
-    const client = new MongoClient(uri);
-    globalWithMongo._mongoClientPromise = client.connect().catch(err => {
-      console.error("MongoDB connection error:", err);
-      return client;
-    });
-  }
-  clientPromise = globalWithMongo._mongoClientPromise;
-} else {
-  // In production mode, it's best to not use a global variable.
-  const uri = process.env.MONGODB_URI || "mongodb://dummy-for-build";
-  const client = new MongoClient(uri);
-  clientPromise = client.connect().catch(err => {
-    console.error("MongoDB connection error:", err);
-    return client;
-  });
+  clientPromise = globalWithMongo._mongoClientPromise || null;
+  cachedClient = globalWithMongo._mongoClient || null;
 }
 
 export function isDatabaseConfigured(): boolean {
@@ -38,10 +24,55 @@ export function isDatabaseConfigured(): boolean {
 }
 
 export async function getClient(): Promise<MongoClient> {
-  if (!process.env.MONGODB_URI) {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
     throw new Error("MONGODB_URI is not configured");
   }
-  return clientPromise;
+
+  // If we have a cached client, check if its topology is closed
+  if (cachedClient) {
+    // @ts-ignore - accessing internal topology state to check if connection is alive
+    const isClosed = cachedClient.topology?.isClosed();
+    if (!isClosed) {
+      return cachedClient;
+    }
+    // If closed, clear cache and reconnect
+    cachedClient = null;
+    clientPromise = null;
+  }
+
+  // If a connection is currently being established, wait for it
+  if (clientPromise) {
+    try {
+      cachedClient = await clientPromise;
+      return cachedClient;
+    } catch (error) {
+      // If it failed, clear the promise and try again below
+      clientPromise = null;
+    }
+  }
+
+  // Establish a new connection
+  const client = new MongoClient(uri);
+  clientPromise = client.connect();
+  
+  try {
+    cachedClient = await clientPromise;
+    
+    if (process.env.NODE_ENV === "development") {
+      let globalWithMongo = global as typeof globalThis & {
+        _mongoClientPromise?: Promise<MongoClient>;
+        _mongoClient?: MongoClient;
+      };
+      globalWithMongo._mongoClientPromise = clientPromise;
+      globalWithMongo._mongoClient = cachedClient;
+    }
+    
+    return cachedClient;
+  } catch (error) {
+    clientPromise = null;
+    throw error;
+  }
 }
 
 export async function getDb(): Promise<Db> {
