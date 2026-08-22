@@ -58,27 +58,8 @@ export function Hero({ venue, availableCount }: HeroProps) {
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <div className="text-center lg:text-left flex flex-col lg:items-start items-center">
-        <motion.div
-          initial={reduced ? { opacity: 0 } : { opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: reduced ? 0.2 : 0.8, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-truf-lime/30 bg-truf-lime/10 px-4 py-1.5 text-sm font-medium text-truf-lime">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-truf-lime opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-truf-lime" />
-            </span>
-            {availableCount} slots open today
-            {venue.isSeed && (
-              <span className="ml-1 rounded bg-white/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-white/60">
-                seed
-              </span>
-            )}
-          </span>
-        </motion.div>
-
         <motion.h1
-          className="max-w-4xl text-4xl font-unbounded font-black leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-7xl uppercase"
+          className="max-w-4xl text-[28px] font-unbounded font-black leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-7xl uppercase"
           initial={reduced ? { opacity: 0 } : { opacity: 0, y: 32 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{
@@ -135,6 +116,23 @@ export function Hero({ venue, availableCount }: HeroProps) {
             className="rounded-full border border-white/20 px-8 py-4 text-base font-semibold text-white transition-colors hover:border-truf-lime/50 hover:text-truf-lime"
           >
             Explore Sports
+          </a>
+        </motion.div>
+
+        <motion.div
+          className="mt-6 flex flex-col items-center justify-center text-center lg:items-start lg:text-left"
+          initial={reduced ? { opacity: 0 } : { opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: reduced ? 0.2 : 0.8,
+            delay: reduced ? 0 : 0.4,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+        >
+          <p className="text-sm text-white/60 mb-2">Contact for more information and bookings</p>
+          <a href="tel:9448653669" className="flex items-center gap-2 text-truf-lime font-bold text-lg hover:underline">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+            9448653669
           </a>
         </motion.div>
 
