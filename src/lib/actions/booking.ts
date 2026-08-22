@@ -4,6 +4,7 @@ import { getCollection, getClient, isDatabaseConfigured } from "@/lib/db/client"
 import { getSlotDetails } from "@/lib/queries/slots";
 import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
+import { generateInvoicePDF } from "@/lib/pdf/invoice";
 
 export async function submitManualBooking(
   slotIds: string[],
@@ -90,14 +91,29 @@ export async function submitManualBooking(
                           `*Amount:* ₹${(finalAmount / 100).toFixed(2)}\n` +
                           `*Status:* Pending Verification (Check Database for screenshot)`;
 
-          fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          // Generate PDF Invoice
+          const pdfBuffer = await generateInvoicePDF({
+            bookingRef,
+            customerName: user.name || "Customer",
+            customerPhone,
+            sportNames: sportSlug.toUpperCase(),
+            timeSlots: times,
+            finalAmountPaise: finalAmount,
+            dateStr: dateStrs
+          });
+
+          // Send via Telegram
+          const formData = new FormData();
+          formData.append('chat_id', chatId);
+          formData.append('caption', message);
+          formData.append('parse_mode', 'Markdown');
+          
+          const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
+          formData.append('document', blob, `Invoice_${bookingRef}.pdf`);
+
+          fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: chatId,
-              text: message,
-              parse_mode: "Markdown"
-            })
+            body: formData
           }).catch(console.error); // Fire and forget
         } catch (e) {
           console.error("Telegram notification setup failed:", e);
