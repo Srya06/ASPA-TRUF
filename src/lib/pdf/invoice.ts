@@ -36,9 +36,9 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Uint8Array>
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   
   const grandTotal = data.finalAmountPaise / 100;
-  const baseAmount = grandTotal / 1.18;
-  const cgst = baseAmount * 0.09;
-  const sgst = baseAmount * 0.09;
+  const baseAmount = grandTotal;
+  const cgst = 0;
+  const sgst = 0;
   
   const formatCurrency = (val: number) => `Rs. ${val.toFixed(2)}`;
   
